@@ -1,19 +1,32 @@
-# Production-ready container for the Vue task list static site.
+# Production-ready container for the Vue task list web app.
 #
-# The app is fully static: Vue 3 is loaded from a CDN in index.html and
-# app.js/styles.css are plain files. There is no package.json, bundler,
-# or compile step, so a multi-stage build would add a stage with nothing
-# to build. The final image is therefore a single, minimal nginx stage.
+# Multi-stage build:
+#   1. node stage  — install dependencies and run `vite build` to compile
+#      src/App.vue into a static bundle in /app/dist (index.html + app.js).
+#   2. nginx stage — serve the built static files from a minimal image.
 
+# ---------- Build stage ----------
+# Vite 6 supports Node ^18 || ^20 || >=22; 20-alpine is an LTS with a small image.
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Install dependencies first so layer caching survives source changes.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Compile the app (src/App.vue) into the static bundle under dist/.
+COPY . .
+RUN npm run build
+
+# ---------- Serve stage ----------
 # nginx:alpine is a small (~50MB) production-grade web server image.
 FROM nginx:1.27-alpine
 
-# Copy the static site into nginx's web root.
-COPY index.html /usr/share/nginx/html/index.html
-COPY styles.css  /usr/share/nginx/html/styles.css
-COPY app.js      /usr/share/nginx/html/app.js
+# Copy the built static site into nginx's web root.
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Serve with long-lived caching for the immutable-ish static assets
+# Serve with long-lived caching for the immutable static assets
 # and no-cache for the entry document, via a minimal server config.
 COPY <<'EOF' /etc/nginx/conf.d/default.conf
 server {
@@ -35,7 +48,7 @@ server {
 }
 EOF
 
-# Default HTTP port.
+# Default HTTP port (matches the k8s Service targetPort).
 EXPOSE 80
 
 # Health check so orchestrators can tell the container is serving.
