@@ -10,8 +10,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Validate JavaScript syntax
         run: node --check app.js
+
+      # No `test` script is defined in package.json, so the build is the
+      # project's verifiable CI check. If a test script is added later,
+      # uncomment the step below:
+      # - name: Run tests
+      #   run: npm test
+
+      - name: Build project
+        run: npm run build
 
       - name: Build Docker image
         run: docker build -t vue-task-list .
