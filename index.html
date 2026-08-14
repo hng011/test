@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vue Task List</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="todo-container">
+    <!-- Add-task row -->
+    <div class="todo-input-row">
+      <input
+        v-model="newTask"
+        type="text"
+        placeholder="What needs to be done?"
+        @keyup.enter="addTask"
+      />
+      <button @click="addTask">Add</button>
+    </div>
+
+    <!-- Task list -->
+    <ul class="todo-list">
+      <li
+        v-for="task in tasks"
+        :key="task.id"
+        :class="{ completed: task.completed }"
+        @click="toggleTask(task)"
+      >
+        <span>{{ task.text }}</span>
+        <button class="delete-btn" @click.stop="removeTask(task.id)">Delete</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Vue 3 global build from CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- App script (must load after Vue) -->
+  <script src="app.js"></script>
+</body>
+</html>

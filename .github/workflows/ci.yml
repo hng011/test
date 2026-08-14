@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate JavaScript syntax
+        run: node --check app.js
+
+      - name: Build Docker image
+        run: docker build -t vue-task-list .

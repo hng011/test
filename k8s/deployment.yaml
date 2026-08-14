@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vue-task-list
+  labels:
+    app: vue-task-list
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vue-task-list
+  template:
+    metadata:
+      labels:
+        app: vue-task-list
+    spec:
+      containers:
+        - name: vue-task-list
+          image: vue-task-list:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vue-task-list
+  labels:
+    app: vue-task-list
+spec:
+  type: ClusterIP
+  selector:
+    app: vue-task-list
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
